@@ -201,12 +201,13 @@ def gr_recommendation(movie_index):
     for title, summary in recommended_movies:
         output_text += f"\n\nTítulo: {title}\nResumen: {summary}\n"
     return {'output': output_text}
-
+# Quitar los comentarios para ejecutar la interfaz de radio.
 # iface = gr.Interface( fn=gr_recommendation,inputs=gr.Dropdown(choices=movie_options, label="Película", info="Selecciona una película que te haya gustado"),outputs="text",)
 
 #iface.launch(share=True)
 
-#Vamos a modificar el código para que haga el sistema de recomendación con embeddings
+#Vamos a modificar el código para que haga el sistema de recomendación con embeddings.
+#No funciona el radio ya que tarda más de 1 min en cargar.
 from gensim.models import Word2Vec
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import load_model, save_model
@@ -316,13 +317,15 @@ def add_reviews_to_ratings(num_reviews=100):
     # Añadir las nuevas columnas al DataFrame original
     ratings_df.loc[:num_reviews-1, 'generated_review'] = selected_ratings['generated_review']
 
-# Llamar a la función para añadir reviews a las primeras 100 filas
+# Llamar a la función para añadir reviews a las primeras 100 filas. Quitar
+# los comentarios para añadirlo
 # add_reviews_to_ratings()
 
 # Mostrar las primeras 100 filas de ratings_df con las nuevas columnas
 # print(ratings_df.head(100))
 
-#Hemos generado una GAN con el objetivo de generar reviews, aunque nos sale vacio los ejemplos generados,
+#Hemos generado una GAN con el objetivo de generar reviews, 
+# aunque nos sale vacio los ejemplos generados,
 #dejo el código para tomarlo como ejemplo
 import numpy as np
 import tensorflow as tf
