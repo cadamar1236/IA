@@ -1,6 +1,8 @@
 # Proyecto de Sistema de Recomendación de Películas
 
 Este proyecto implementa un sistema de recomendación de películas que utiliza técnicas de procesamiento de lenguaje natural (NLP) y modelos de aprendizaje automático. Además, incluye la generación de reseñas de películas utilizando inteligencia artificial.
+Por otra parte, he realizado una GAN que podría generar reseñas sin la necesidad de ChatGP, pero debido a la escasez de datos, no es efectiva.
+También he practicado con la generación del sistema de recomendación con embeddings.
 
 ## Estructura del Proyecto
 
