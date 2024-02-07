@@ -205,6 +205,7 @@ def gr_recommendation(movie_index):
 # iface = gr.Interface( fn=gr_recommendation,inputs=gr.Dropdown(choices=movie_options, label="Película", info="Selecciona una película que te haya gustado"),outputs="text",)
 
 #iface.launch(share=True)
+
 #Vamos a modificar el código para que haga el sistema de recomendación con embeddings
 from gensim.models import Word2Vec
 from sklearn.model_selection import train_test_split
@@ -297,7 +298,7 @@ def recommendation_w2v(reference_movie_index):
 
     return recommended_movies
 
-
+#Funcion para añadir reviews usando la api de OpenAi
 def add_reviews_to_ratings(num_reviews=100):
     # Seleccionar las primeras 100 filas de ratings_df
     selected_ratings = ratings_df.head(num_reviews).copy()  # Copiar para evitar cambios en el DataFrame original
@@ -316,8 +317,123 @@ def add_reviews_to_ratings(num_reviews=100):
     ratings_df.loc[:num_reviews-1, 'generated_review'] = selected_ratings['generated_review']
 
 # Llamar a la función para añadir reviews a las primeras 100 filas
-add_reviews_to_ratings()
+# add_reviews_to_ratings()
 
 # Mostrar las primeras 100 filas de ratings_df con las nuevas columnas
-print(ratings_df.head(100))
+# print(ratings_df.head(100))
 
+#Hemos generado una GAN con el objetivo de generar reviews, aunque nos sale vacio los ejemplos generados,
+#dejo el código para tomarlo como ejemplo
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, LeakyReLU, BatchNormalization, Flatten
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+# Define el generador
+def build_generator(latent_dim, output_shape):
+    model = Sequential()
+    model.add(Dense(256, input_dim=latent_dim))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(BatchNormalization(momentum=0.8))
+    model.add(Dense(512))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(BatchNormalization(momentum=0.8))
+    model.add(Dense(output_shape, activation='tanh'))
+    return model
+
+# Define el discriminador
+def build_discriminator(input_shape):
+    model = Sequential()
+    model.add(Flatten(input_shape=input_shape))  # Añade una capa de Flatten
+    model.add(Dense(512))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(256))
+    model.add(LeakyReLU(alpha=0.2))
+    model.add(Dense(1, activation='sigmoid'))
+    return model
+
+# Define y compila la GAN
+def build_gan(generator, discriminator):
+    discriminator.trainable = False
+    model = Sequential()
+    model.add(generator)
+    model.add(discriminator)
+    model.compile(loss='binary_crossentropy', optimizer=Adam(learning_rate=0.0002, beta_1=0.5))
+    return model
+
+# Entrenamiento de la GAN
+def train_gan(generator, discriminator, gan, X_train, latent_dim, epochs=10000, batch_size=64):
+    for epoch in range(epochs):
+        # Entrenar discriminador
+        idx = np.random.randint(0, X_train.shape[0], batch_size)
+        real_reviews = X_train[idx]
+        noise = np.random.normal(0, 1, (batch_size, latent_dim))
+        generated_reviews = generator.predict(noise)
+        real_labels = np.ones((batch_size, 1))
+        fake_labels = np.zeros((batch_size, 1))
+        d_loss_real = discriminator.train_on_batch(real_reviews, real_labels)
+        d_loss_fake = discriminator.train_on_batch(generated_reviews, fake_labels)
+        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+
+        # Entrenar generador
+        noise = np.random.normal(0, 1, (batch_size, latent_dim))
+        valid_labels = np.ones((batch_size, 1))
+        g_loss = gan.train_on_batch(noise, valid_labels)
+
+        # Imprimir progreso
+        print(f"{epoch} [D loss: {d_loss} | G loss: {g_loss}]")
+
+# Selecciona las reviews reales para entrenar la GAN
+selected_reviews = ratings_df['overview'].dropna()
+selected_reviews = selected_reviews[:100]  # Selecciona un número de reviews para entrenar
+
+# Tokeniza y convierte las reviews a secuencias numéricas
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts(selected_reviews)
+total_words = len(tokenizer.word_index) + 1
+
+sequences = tokenizer.texts_to_sequences(selected_reviews)
+max_sequence_length = max([len(seq) for seq in sequences])
+padded_sequences = pad_sequences(sequences, maxlen=max_sequence_length, padding='post')
+
+# Tamaño de la dimensión latente para la GAN
+latent_dim = 200
+output_shape = max_sequence_length  # Ajusta la salida al máximo de la secuencia
+
+# Construye y compila el generador y el discriminador
+generator = build_generator(latent_dim, output_shape)
+generator.compile(loss='binary_crossentropy', optimizer='adam')
+
+discriminator = build_discriminator(input_shape=(output_shape,))
+discriminator.compile(loss='binary_crossentropy', optimizer=tf.keras.optimizers.Adam(learning_rate=0.0002, beta_1=0.5))
+
+gan = build_gan(generator, discriminator)
+gan.compile(loss='binary_crossentropy', optimizer='adam')
+
+# Entrenamiento de la GAN
+train_gan(generator, discriminator, gan, padded_sequences, latent_dim, epochs=400, batch_size=64)
+
+# Generación de ejemplos de reviews
+def generate_reviews(generator, latent_dim, num_samples=5):
+    noise = np.random.normal(0, 1, (num_samples, latent_dim))
+    generated_reviews = generator.predict(noise)
+    generated_reviews_text = []
+
+    for sequence in generated_reviews:
+        # Obtener las palabras correspondientes a las probabilidades generadas
+        generated_words = [tokenizer.index_word.get(np.argmax(prob), "") for prob in sequence]
+        generated_review_text = " ".join([word for word in generated_words if word])
+        generated_reviews_text.append(generated_review_text)
+
+    return generated_reviews_text
+
+# Imprimir ejemplos generados
+generated_reviews_text = generate_reviews(generator, latent_dim, num_samples=5)
+for i, review_text in enumerate(generated_reviews_text):
+    print(f"Ejemplo generado {i+1}: {review_text}")
+
+
+#Obtenemos textos vacíos...
