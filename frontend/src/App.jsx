@@ -735,6 +735,7 @@ function ProductApp({ user, onLogout }) {
     const navItems = [
     { label: 'Dashboard', icon: '⭐' },
     { label: 'Projects', icon: '📁' },
+    { label: 'Pricing', icon: '💰' },
     { label: 'Leads', icon: '🔥' },
     { label: 'Analytics', icon: '📈' },
     { label: 'Settings', icon: '⚙️' },
@@ -956,6 +957,61 @@ function ProductApp({ user, onLogout }) {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Tab */}
+        {activeTab === 'Pricing' && (
+          <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ background: 'linear-gradient(135deg, #1a1a0e 0%, #2a2a1e 50%, #1a1a0e 100%)' }}>
+            <div className="text-center mb-8">
+              <h2 className="text-white text-2xl font-bold font-playfair">Simple, Transparent Pricing</h2>
+              <p className="text-gray-400 text-sm mt-2">Choose the plan that fits your AI team size.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {[
+                { name: 'Starter', price: '499', period: '/month', features: ['1 AI Agent', '5 Integrations', 'Basic Analytics', 'Email Support'], popular: false },
+                { name: 'Growth', price: '999', period: '/month', features: ['3 AI Agents', '15 Integrations', 'Advanced Analytics', 'Priority Support', 'Custom Training'], popular: true },
+                { name: 'Enterprise', price: 'Custom', period: '', features: ['Unlimited Agents', 'Unlimited Integrations', 'Full Analytics Suite', '24/7 Dedicated Support', 'On-Premise Option', 'SLA Guarantee'], popular: false },
+              ].map((plan, idx) => (
+                <div
+                  key={idx}
+                  className={`relative bg-gray-800/40 backdrop-blur-sm rounded-2xl p-6 border transition-all duration-300 ${
+                    plan.popular ? 'border-amber-500/50 scale-105 shadow-xl shadow-amber-500/10' : 'border-gray-700/40 hover:border-gray-600/60'
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-gray-900 text-xs font-bold px-4 py-1 rounded-full">
+                      Most Popular
+                    </div>
+                  )}
+                  <h3 className="text-white text-lg font-bold mb-2">{plan.name}</h3>
+                  <div className="mb-4">
+                    <span className="text-yellow-200 text-4xl font-extrabold">
+                      {plan.price === 'Custom' ? 'Custom' : `$${plan.price}`}
+                    </span>
+                    {plan.period && <span className="text-gray-400 text-sm ml-1">{plan.period}</span>}
+                  </div>
+                  <ul className="space-y-3 mb-6">
+                    {(plan.features || []).map((feat, fi) => (
+                      <li key={fi} className="text-gray-300 text-sm flex items-center gap-2">
+                        <span className="text-emerald-400">✓</span>
+                        {feat}
+                      </li>
+                    ))}
+                  </ul>
+                  <button className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-gray-900 font-bold text-sm hover:shadow-lg hover:shadow-amber-500/30 transition-all">
+                    {plan.popular ? 'Deploy Now' : 'Get Started'}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-8">
+              <p className="text-gray-400 text-sm">
+                All plans include a 14-day free trial. No credit card required.
+              </p>
             </div>
           </div>
         )}
