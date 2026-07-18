@@ -1,30 +1,5 @@
 import { useState, useEffect } from 'react';
 
-function DashboardStats({ projects, leads, activityLog, timeAgo }) {
-  const totalTasks = (projects ?? []).reduce((sum, p) => sum + (Number(p.tasks) || 0), 0);
-  const completedProjects = (projects ?? []).filter((p) => p.status === 'Completed').length;
-  const activeProjectsCount = (projects ?? []).filter((p) => p.status === 'Active').length;
-  const completionRate = (projects ?? []).length ? Math.round((completedProjects / (projects ?? []).length) * 100) : 0;
-  const hotLeadsCount = (leads ?? []).filter((l) => l.status === 'Hot').length;
-
-  const stats = [
-    { label: 'Total Projects', value: String((projects ?? []).length), change: `${activeProjectsCount} active`, up: true, icon: '🚀', color: '#FFD700' },
-    { label: 'Total Tasks', value: String(totalTasks), change: `${completedProjects} projects done`, up: true, icon: '✅', color: '#FFD700' },
-    { label: 'Completion Rate', value: `${completionRate}%`, change: completionRate >= 50 ? 'On track' : 'Needs push', up: completionRate >= 50, icon: '📈', color: '#FFD700' },
-    { label: 'Leads (Hot)', value: String((leads ?? []).length), change: `${hotLeadsCount} hot`, up: hotLeadsCount > 0, icon: '🔥', color: '#FFD700' },
-  ];
-
-  const recentActivity = (activityLog ?? []).map((a) => ({
-    project: a.project,
-    user: a.user,
-    status: a.action,
-    time: timeAgo(a.ts),
-    color: a.action === 'Created' ? 'text-emerald-400' : a.action === 'Deleted' ? 'text-red-400' : 'text-amber-400',
-  }));
-
-  return { stats, recentActivity };
-}
-
 function LandingPage({ onGetStarted, onLogin }) {
   const [styleInjected, setStyleInjected] = useState(false);
 
@@ -664,11 +639,6 @@ function ProductApp({ user, onLogout }) {
       { id: 6, name: 'Project Alpha-6', description: 'AI-powered process optimization', status: 'Review', tasks: 8 },
     ];
   });
-  const [dashboardColor, setDashboardColor] = useState(() => {
-    try {
-      return localStorage.getItem('ia_dashboard_color') || 'from-violet-500 to-purple-600';
-    } catch { return 'from-violet-500 to-purple-600'; }
-  });
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [projectForm, setProjectForm] = useState({ name: '', description: '', status: 'Active', tasks: 0 });
@@ -762,8 +732,8 @@ function ProductApp({ user, onLogout }) {
     if (p) logActivity(p.name, 'Deleted', 'Removed');
   };
 
-  const navItems = [
-    { label: 'Dashboard', icon: '📊' },
+    const navItems = [
+    { label: 'Dashboard', icon: '⭐' },
     { label: 'Projects', icon: '📁' },
     { label: 'Leads', icon: '🔥' },
     { label: 'Analytics', icon: '📈' },
@@ -843,7 +813,7 @@ function ProductApp({ user, onLogout }) {
         <header className="h-16 bg-gray-900/60 backdrop-blur-xl border-b border-gray-800/50 flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-white font-bold text-lg">{activeTab}</h1>
-            <span className="text-gray-500 text-sm">Overview of your AI operations</span>
+            <span className="text-yellow-400 text-sm font-semibold">⭐ Overview of your AI operations</span>
           </div>
           <div className="flex items-center gap-4">
             {/* Notification bell */}
@@ -873,7 +843,7 @@ function ProductApp({ user, onLogout }) {
 
         {/* Dashboard Content Area */}
         {activeTab === 'Dashboard' && (
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6" style={{ background: 'linear-gradient(135deg, #1a1a0e 0%, #2a2a1e 50%, #1a1a0e 100%)' }}>
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {(stats ?? []).map((stat, idx) => (
@@ -887,7 +857,7 @@ function ProductApp({ user, onLogout }) {
                       </span>
                     </div>
                     <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-1">{stat.label}</p>
-                    <p className="text-white text-2xl font-extrabold tracking-tight">{stat.value}</p>
+                    <p className="text-yellow-200 text-2xl font-extrabold tracking-tight">{stat.value}</p>
                   </div>
                 </div>
               ))}
